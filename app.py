@@ -482,7 +482,9 @@ def send_email_otp(recipient, otp, is_signup=False):
         msg['To'] = recipient
 
         print("Step 2: Connecting to SMTP")
+        print("Creating SMTP object...")
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=20)
+        print("SMTP object created")
 
         print("Step 3: Starting TLS")
         server.starttls()
