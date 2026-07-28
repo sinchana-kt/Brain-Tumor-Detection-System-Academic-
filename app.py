@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import os
+import gdown
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -28,6 +29,13 @@ def before_request():
 
 # Load ML model
 MODEL_PATH = "final_model.keras"
+
+if not os.path.exists(MODEL_PATH):
+    file_id = "1e_MdXceh7T5hif9yHTwJV8uUG5CEzYU-"
+    url = f"https://drive.google.com/uc?id={file_id}"
+    print("Downloading model...")
+    gdown.download(url, MODEL_PATH, quiet=False)
+
 model = load_model(MODEL_PATH)
 
 CLASS_MAP = {
