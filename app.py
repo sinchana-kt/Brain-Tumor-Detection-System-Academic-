@@ -36,7 +36,15 @@ if not os.path.exists(MODEL_PATH):
     print("Downloading model...")
     gdown.download(url, MODEL_PATH, quiet=False)
 
-model = load_model(MODEL_PATH)
+model = None
+def get_model():
+    global model
+
+    if model is None:
+        print("Loading model...")
+        model = load_model(MODEL_PATH)
+
+    return model
 
 CLASS_MAP = {
     0: "glioma",
@@ -369,14 +377,15 @@ def predict():
     original_img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
     original_img = cv2.resize(original_img, IMG_SIZE)
 
-    preds = model.predict(img)[0]
+    current_model = get_model()
+    preds = current_model.predict(img)[0]
     class_index = np.argmax(preds)
     confidence = float(preds[class_index])
     label = CLASS_MAP[class_index]
 
     # GRAD-CAM
     last_conv_layer = None
-    for layer in reversed(model.layers):
+    for layer in reversed(current_model.layers):
         if isinstance(layer, tf.keras.layers.Conv2D):
             last_conv_layer = layer.name
             break
@@ -384,8 +393,8 @@ def predict():
     heatmap_img_base64 = None
     if last_conv_layer:
         grad_model = tf.keras.models.Model(
-            [model.inputs],
-            [model.get_layer(last_conv_layer).output, model.output]
+            [current_model.inputs],
+            [current_model.get_layer(last_conv_layer).output, current_model.output]
         )
         with tf.GradientTape() as tape:
             conv_outputs, predictions = grad_model(img)
