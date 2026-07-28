@@ -473,20 +473,34 @@ SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 
 def send_email_otp(recipient, otp, is_signup=False):
     try:
+        print("Step 1: Preparing email")
+
         subject = "brAIn - Verify your email" if is_signup else "brAIn - Password Reset OTP"
         msg = MIMEText(f"Your OTP is: {otp}\nIt will expire in 10 minutes.")
         msg['Subject'] = subject
         msg['From'] = SENDER_EMAIL
         msg['To'] = recipient
-        
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+
+        print("Step 2: Connecting to SMTP")
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=20)
+
+        print("Step 3: Starting TLS")
         server.starttls()
+
+        print("Step 4: Logging in")
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
+
+        print("Step 5: Sending email")
         server.send_message(msg)
+
+        print("Step 6: Closing connection")
         server.quit()
+
+        print("Step 7: Success")
         return True
+
     except Exception as e:
-        print("Email sending error:", e)
+        print("Email sending error:", repr(e))
         return False
 
 @app.route("/send_otp", methods=["POST"])
