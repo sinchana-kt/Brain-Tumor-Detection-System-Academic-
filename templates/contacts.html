@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Directory - brAIn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-color: #0b2239;
+            background-image: linear-gradient(rgba(11, 34, 57, 0.8), rgba(11, 34, 57, 0.8)), url('/static/watermark.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Garamond', serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .contact-banner {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(46, 204, 113, 0.1));
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 70px;
+            z-index: 90;
+        }
+
+        .contact-banner p {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--color-primary);
+        }
+
+        .contact-banner a {
+            color: #ffffff;
+            text-decoration: underline;
+            margin-left: 5px;
+            transition: var(--transition);
+        }
+
+        .contact-banner a:hover {
+            color: var(--color-secondary);
+        }
+
+        .search-container {
+            margin: 3rem auto;
+            max-width: 700px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 1.2rem 1.5rem 1.2rem 3.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-family: 'Garamond', serif;
+            outline: none;
+            transition: var(--transition);
+            backdrop-filter: blur(20px);
+        }
+
+        .search-box:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 25px rgba(0, 188, 212, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-primary);
+            font-size: 1.2rem;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .ad-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ad-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--color-primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .ad-card::before {
+            content: 'FEATURED';
+            position: absolute;
+            top: 15px;
+            right: -30px;
+            background: var(--color-primary);
+            color: #0b2239;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+        }
+
+        .ad-type {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ad-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+        }
+
+        .ad-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .ad-info i {
+            color: var(--color-primary);
+            width: 20px;
+        }
+
+        .ad-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .btn-ad {
+            flex: 1;
+            padding: 0.8rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .btn-contact-ad {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .btn-map-ad {
+            background: var(--color-primary);
+            color: #0b2239;
+            border: 1px solid var(--color-primary);
+        }
+
+        .btn-ad:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 5px 15px rgba(0, 188, 212, 0.2);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem;
+            color: rgba(255, 255, 255, 0.5);
+            display: none;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        /* Suggestions Dropdown */
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(11, 34, 57, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .suggestion-item:hover {
+            background: rgba(0, 188, 212, 0.1);
+            color: var(--color-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i> brAIn
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/vos">Survivors</a>
+            <a href="/dashboard">Upload MRI</a>
+            <a href="/donation">Donations</a>
+            <a href="/contact" class="active">Directory</a>
+        </div>
+        {% if session.get('user') %}
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="opacity: 0.7; font-size: 0.9rem;">Hello, <span style="font-weight: 700; color: var(--color-primary);">{{ session.get('user') }}</span></span>
+            <a href="/logout" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </div>
+        {% else %}
+        <a href="/login" class="cta-btn" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">Login</a>
+        {% endif %}
+    </nav>
+
+    <div class="contact-banner">
+        <p>Want to feature your Hospital or Clinic? Contact <a href="mailto:brAIn@yahoo.com">brAIn@yahoo.com</a></p>
+    </div>
+
+    <main class="container">
+        <header style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 3rem; font-weight: 800; font-family: 'Georgia', serif;">Medical Directory</h1>
+            <p style="color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto; font-size: 1.25rem;">Find top-rated hospitals, doctors, and diagnostic centers across India.</p>
+        </header>
+
+        <div class="search-container">
+            <i class="fa-solid fa-location-dot search-icon"></i>
+            <input type="text" class="search-box" id="city-search" placeholder="Search by city (e.g. Mumbai, Delhi, Bangalore...)" autocomplete="off">
+            <div class="suggestions-list" id="suggestions-list"></div>
+        </div>
+
+        <div id="ads-container" class="cities-grid">
+            <!-- Ads will be injected here -->
+        </div>
+
+        <div id="no-results" class="no-results">
+            <i class="fa-solid fa-hospital-user"></i>
+            <h3>No facilities found in this city yet.</h3>
+            <p>Know a great place? Tell them to feature here!</p>
+        </div>
+    </main>
+
+    <script>
+        const cities = [
+            "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat", 
+            "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", 
+            "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara", "Ghaziabad", "Ludhiana", 
+            "Agra", "Nashik", "Faridabad", "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", 
+            "Varanasi", "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", "Allahabad", 
+            "Ranchi", "Howrah", "Jabalpur", "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", 
+            "Kota", "Guwahati", "Chandigarh", "Solapur", "Hubli", "Bareilly", "Moradabad", 
+            "Mysore", "Gurgaon", "Aligarh", "Jalandhar", "Tiruchirappalli", "Bhubaneswar", "Salem", 
+            "Mira-Bhayandar", "Warangal", "Thiruvananthapuram", "Guntur", "Bhiwandi", "Saharanpur", 
+            "Gorakhpur", "Bikaner", "Amravati", "Noida", "Jamshedpur", "Bhilai", "Cuttack", "Firozabad", 
+            "Kochi", "Nellore", "Bhavnagar", "Dehradun", "Durgapur", "Asansol", "Rourkela", "Nanded", 
+            "Kolhapur", "Ajmer", "Akola", "Gulbarga", "Jamnagar", "Ujjain", "Loni", "Siliguri", 
+            "Jhansi", "Ulhasnagar", "Jammu", "Sangli", "Belgaum", "Mangalore", "Shimoga", "Tumkur",
+            "Bellary", "Davanagere", "Coimbatore", "Vizag", "Udaipur"
+        ];
+
+        const mockAds = [
+            // KARNATAKA (11 Entries, 10 Unique Cities)
+            { name: "NIMHANS", city: "Bangalore", type: "Hospital", address: "Hosur Road, Lakkasandra", phone: "+91 80 2699 5000", specialty: "Neuro Sciences", mapUrl: "https://www.google.com/maps/search/NIMHANS+Bangalore+reviews" },
+            { name: "Apollo BGS Hospitals", city: "Mysore", type: "Hospital", address: "Adhichunchanagiri Road, Kuvempunagar", phone: "+91 821 256 8888", specialty: "Neurology & Oncology", mapUrl: "https://www.google.com/maps/search/Apollo+BGS+Hospitals+Mysore+reviews" },
+            { name: "Manipal Hospital", city: "Mysore", type: "Hospital", address: "Bangalore-Mysore Highway", phone: "+91 821 255 5000", specialty: "Advanced Diagnostics", mapUrl: "https://www.google.com/maps/search/Manipal+Hospital+Mysore+reviews" },
+            { name: "KMC Hospital", city: "Mangalore", type: "Hospital", address: "Dr B R Ambedkar Circle", phone: "+91 824 244 4590", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/KMC+Hospital+Mangalore+reviews" },
+            { name: "Tatwadarsha Hospital", city: "Hubli", type: "Hospital", address: "Vidya Nagar, Hubballi", phone: "+91 836 237 2252", specialty: "Critical Care", mapUrl: "https://www.google.com/maps/search/Tatwadarsha+Hospital+Hubli+reviews" },
+            { name: "KLE Centenary Hospital", city: "Belgaum", type: "Hospital", address: "Yellur Road, Belagavi", phone: "+91 831 247 3777", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/KLE+Centenary+Hospital+Belgaum+reviews" },
+            { name: "United Hospital", city: "Gulbarga", type: "Hospital", address: "Sangameshwar Nagar", phone: "+91 8472 221 155", specialty: "Diagnostic Services", mapUrl: "https://www.google.com/maps/search/United+Hospital+Gulbarga+reviews" },
+            { name: "VIMS Hospital", city: "Bellary", type: "Hospital", address: "Cantonment, Ballari", phone: "+91 8392 235 201", specialty: "Government Medical Center", mapUrl: "https://www.google.com/maps/search/VIMS+Hospital+Bellary+reviews" },
+            { name: "SSIMS & RC", city: "Davanagere", type: "Hospital", address: "NH-4, Bypass Road", phone: "+91 8192 261 807", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/SSIMS+Davanagere+reviews" },
+            { name: "KIMS Hospital", city: "Shimoga", type: "Hospital", address: "Sagar Road, Shivamogga", phone: "+91 8182 222 290", specialty: "Medical Sciences", mapUrl: "https://www.google.com/maps/search/KIMS+Shimoga+reviews" },
+            { name: "Siddhartha Hospital", city: "Tumkur", type: "Hospital", address: "B.H. Road, Tumakuru", phone: "+91 816 227 8867", specialty: "General & Neuro", mapUrl: "https://www.google.com/maps/search/Siddhartha+Hospital+Tumkur+reviews" },
+
+            // OTHER MAJOR CITIES (30 Unique Cities)
+            { name: "Tata Memorial Hospital", city: "Mumbai", type: "Hospital", address: "Parel, Mumbai", phone: "+91 22 2417 7000", specialty: "Cancer & Tumor Specialist", mapUrl: "https://www.google.com/maps/search/Tata+Memorial+Hospital+Mumbai+reviews" },
+            { name: "AIIMS Delhi", city: "Delhi", type: "Hospital", address: "Ansari Nagar, New Delhi", phone: "+91 11 2658 8500", specialty: "Neuroscience Centre", mapUrl: "https://www.google.com/maps/search/AIIMS+Delhi+reviews" },
+            { name: "Yashoda Hospitals", city: "Hyderabad", type: "Hospital", address: "Somajiguda, Hyderabad", phone: "+91 40 4567 4567", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Yashoda+Hospitals+Hyderabad+reviews" },
+            { name: "Apollo Hospitals", city: "Chennai", type: "Hospital", address: "Greams Road, Chennai", phone: "+91 44 2829 3333", specialty: "Neurosurgeon Team", mapUrl: "https://www.google.com/maps/search/Apollo+Hospitals+Chennai+reviews" },
+            { name: "AMRI Hospitals", city: "Kolkata", type: "Hospital", address: "Dhakuria, Kolkata", phone: "+91 33 6680 0000", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/AMRI+Hospitals+Kolkata+reviews" },
+            { name: "Sahyadri Hospital", city: "Pune", type: "Hospital", address: "Deccan Gymkhana, Pune", phone: "+91 20 6721 3000", specialty: "Neuro Sciences", mapUrl: "https://www.google.com/maps/search/Sahyadri+Hospital+Pune+reviews" },
+            { name: "Zydus Hospital", city: "Ahmedabad", type: "Hospital", address: "Thaltej, Ahmedabad", phone: "+91 79 6619 0000", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/Zydus+Hospital+Ahmedabad+reviews" },
+            { name: "Fortis Escorts", city: "Jaipur", type: "Hospital", address: "Malviya Nagar, Jaipur", phone: "+91 141 254 7000", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Fortis+Jaipur+reviews" },
+            { name: "Medanta Lucknow", city: "Lucknow", type: "Hospital", address: "Sultanpur Road, Lucknow", phone: "+91 522 450 5050", specialty: "Institute of Neurosciences", mapUrl: "https://www.google.com/maps/search/Medanta+Lucknow+reviews" },
+            { name: "PGIMER", city: "Chandigarh", type: "Hospital", address: "Sector 12, Chandigarh", phone: "+91 172 274 7585", specialty: "Advanced Medical Research", mapUrl: "https://www.google.com/maps/search/PGIMER+Chandigarh+reviews" },
+            { name: "Medanta - The Medicity", city: "Gurgaon", type: "Hospital", address: "Sector 38, Gurugram", phone: "+91 124 4141 414", specialty: "Neurology & Oncology", mapUrl: "https://www.google.com/maps/search/Medanta+Gurgaon+reviews" },
+            { name: "Jaypee Hospital", city: "Noida", type: "Hospital", address: "Sector 128, Noida", phone: "+91 120 412 2222", specialty: "Neuro Surgery", mapUrl: "https://www.google.com/maps/search/Jaypee+Hospital+Noida+reviews" },
+            { name: "Aster Medcity", city: "Kochi", type: "Hospital", address: "Cheranelloor, Kochi", phone: "+91 484 669 9999", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Aster+Medcity+Kochi+reviews" },
+            { name: "KG Hospital", city: "Coimbatore", type: "Hospital", address: "Arts College Road", phone: "+91 422 221 2121", specialty: "Advanced MRI", mapUrl: "https://www.google.com/maps/search/KG+Hospital+Coimbatore+reviews" },
+            { name: "SevenHills Hospital", city: "Vizag", type: "Hospital", address: "Waltair Main Road", phone: "+91 891 270 8090", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/SevenHills+Hospital+Vizag+reviews" },
+            { name: "Paras HMRI Hospital", city: "Patna", type: "Hospital", address: "Raja Bazar, Patna", phone: "+91 612 710 7700", specialty: "Neuro Science", mapUrl: "https://www.google.com/maps/search/Paras+HMRI+Hospital+Patna+reviews" },
+            { name: "Health Point Hospital", city: "Ranchi", type: "Hospital", address: "Bariatu, Ranchi", phone: "+91 651 254 7710", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/Health+Point+Hospital+Ranchi+reviews" },
+            { name: "Bansal Hospital", city: "Bhopal", type: "Hospital", address: "Shahpura, Bhopal", phone: "+91 755 408 6000", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Bansal+Hospital+Bhopal+reviews" },
+            { name: "Choithram Hospital", city: "Indore", type: "Hospital", address: "Manik Bagh Road", phone: "+91 731 236 2491", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/Choithram+Hospital+Indore+reviews" },
+            { name: "Orange City Hospital", city: "Nagpur", type: "Hospital", address: "Pandey Layout, Nagpur", phone: "+91 712 222 3333", specialty: "Critical Care", mapUrl: "https://www.google.com/maps/search/Orange+City+Hospital+Nagpur+reviews" },
+            { name: "Sunshine Global", city: "Surat", type: "Hospital", address: "Piplod, Surat", phone: "+91 261 220 2000", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Sunshine+Global+Hospital+Surat+reviews" },
+            { name: "Sterling Hospital", city: "Vadodara", type: "Hospital", address: "Race Course Road", phone: "+91 265 233 7777", specialty: "Neuro Sciences", mapUrl: "https://www.google.com/maps/search/Sterling+Hospital+Vadodara+reviews" },
+            { name: "DMC Hospital", city: "Ludhiana", type: "Hospital", address: "Tagore Nagar, Ludhiana", phone: "+91 161 468 7700", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/DMC+Hospital+Ludhiana+reviews" },
+            { name: "Fortis Escorts", city: "Amritsar", type: "Hospital", address: "Majitha Road, Amritsar", phone: "+91 183 245 0701", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/Fortis+Amritsar+reviews" },
+            { name: "Max Super Speciality", city: "Dehradun", type: "Hospital", address: "Mussoorie Diversion Road", phone: "+91 135 719 3000", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Max+Hospital+Dehradun+reviews" },
+            { name: "Apollo Hospitals", city: "Guwahati", type: "Hospital", address: "G S Road, Guwahati", phone: "+91 361 713 5005", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Apollo+Hospitals+Guwahati+reviews" },
+            { name: "Kalinga Hospital", city: "Bhubaneswar", type: "Hospital", address: "Chandrasekharpur", phone: "+91 674 230 0570", specialty: "Advanced Neuro", mapUrl: "https://www.google.com/maps/search/Kalinga+Hospital+Bhubaneswar+reviews" },
+            { name: "Ramkrishna CARE", city: "Raipur", type: "Hospital", address: "Pachpedi Naka, Raipur", phone: "+91 771 300 3300", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Ramkrishna+CARE+Raipur+reviews" },
+            { name: "Tata Main Hospital", city: "Jamshedpur", type: "Hospital", address: "Bistupur, Jamshedpur", phone: "+91 657 664 1010", specialty: "Neurology", mapUrl: "https://www.google.com/maps/search/Tata+Main+Hospital+Jamshedpur+reviews" },
+            { name: "GBH American Hospital", city: "Udaipur", type: "Hospital", address: "Meera Marg, Udaipur", phone: "+91 294 305 6000", specialty: "Multi-specialty", mapUrl: "https://www.google.com/maps/search/GBH+American+Hospital+Udaipur+reviews" }
+        ];
+
+        const searchInput = document.getElementById('city-search');
+        const suggestionsList = document.getElementById('suggestions-list');
+        const adsContainer = document.getElementById('ads-container');
+        const noResults = document.getElementById('no-results');
+
+        function displayAds(filteredAds) {
+            adsContainer.innerHTML = '';
+            if (filteredAds.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            noResults.style.display = 'none';
+            filteredAds.forEach(ad => {
+                const card = document.createElement('div');
+                card.className = 'ad-card';
+                card.innerHTML = `
+                    <div class="ad-type">${ad.type}</div>
+                    <div class="ad-name">${ad.name}</div>
+                    <div class="ad-info"><i class="fa-solid fa-location-dot"></i> ${ad.address}, ${ad.city}</div>
+                    <div class="ad-info"><i class="fa-solid fa-stethoscope"></i> ${ad.specialty}</div>
+                    <div class="ad-info"><i class="fa-solid fa-phone"></i> ${ad.phone}</div>
+                    <div class="ad-actions">
+                        <a href="tel:${ad.phone}" class="btn-ad btn-contact-ad"><i class="fa-solid fa-phone"></i> Contact</a>
+                        <a href="${ad.mapUrl}" target="_blank" class="btn-ad btn-map-ad"><i class="fa-solid fa-map-location-dot"></i> View on Maps</a>
+                    </div>
+                `;
+                adsContainer.appendChild(card);
+            });
+        }
+
+        // Initial display
+        displayAds(mockAds);
+
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            suggestionsList.innerHTML = '';
+            
+            if (val.length > 0) {
+                const filteredCities = cities.filter(city => city.toLowerCase().includes(val)).slice(0, 8);
+                if (filteredCities.length > 0) {
+                    suggestionsList.style.display = 'block';
+                    filteredCities.forEach(city => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.textContent = city;
+                        div.onclick = () => selectCity(city);
+                        suggestionsList.appendChild(div);
+                    });
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            } else {
+                suggestionsList.style.display = 'none';
+                displayAds(mockAds);
+            }
+        });
+
+        function selectCity(city) {
+            searchInput.value = city;
+            suggestionsList.style.display = 'none';
+            const filteredAds = mockAds.filter(ad => ad.city.toLowerCase() === city.toLowerCase());
+            displayAds(filteredAds);
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput) {
+                suggestionsList.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+app.db
+archive/
+.vscode/
+.gemini/
+*.log
+.venv/
+venv/
+__pycache__/
+*.pyc
+final_model.keras

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>brAIn - Secure Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body, html { min-height: 100vh; margin: 0; background: #0b2239; font-family: 'Garamond', serif;}
+        .auth-container {
+            display: flex; min-height: 100vh; width: 100vw; position: relative;
+        }
+        /* Left: Form Area */
+        .auth-left {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem;
+            position: relative; z-index: 10;
+        }
+        /* Right: Illustration Area */
+        .auth-right {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0, 188, 212, 0.02); border-left: 1px solid rgba(0, 188, 212, 0.1);
+            position: relative; overflow: hidden; z-index: 5;
+        }
+        @media(max-width: 768px) {
+            .auth-container { flex-direction: column; overflow-y: auto;}
+            .auth-right { display: none; }
+        }
+        
+        .auth-card {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px;
+            padding: 3rem; width: 100%; max-width: 480px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+            position: relative; overflow: hidden; z-index: 20;
+            animation: cardFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header { text-align: center; margin-bottom: 1.5rem; }
+        .auth-header h2 { font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--color-primary); font-weight: 800; font-family: 'Georgia', serif; }
+        .auth-header p { color: rgba(255, 255, 255, 0.7); font-size: 1rem; font-family: 'Garamond', serif; }
+
+        .input-group { position: relative; margin-bottom: 1.2rem; }
+        .input-group i.icon-left { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-primary); opacity: 0.7;}
+        .input-group input {
+            width: 100%; padding: 1.1rem 1.1rem 1.1rem 3.2rem; border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05);
+            font-size: 1rem; outline: none; transition: var(--transition); color: #ffffff; font-family: 'Nunito', sans-serif;
+            box-sizing: border-box;
+        }
+        .input-group input:focus { 
+            border-color: var(--color-primary); 
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(0, 188, 212, 0.2); 
+        }
+        .input-group .toggle-password {
+            position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: var(--color-text-muted); transition: color 0.3s;
+        }
+        .input-group .toggle-password:hover { color: var(--color-primary); }
+
+        .form-options { display: flex; justify-content: space-between; margin-bottom: 2rem; font-size: 0.9rem; }
+        .form-options a { color: var(--color-primary); text-decoration: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .form-options a:hover { color: var(--color-secondary); }
+
+        .auth-submit { 
+            width: 100%; height: 55px; margin-bottom: 1.5rem; 
+            display: flex; justify-content: center; align-items: center; 
+            border: none; font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem; letter-spacing: 0.5px;
+        }
+        
+        .auth-footer { text-align: center; font-size: 0.95rem; color: rgba(255, 255, 255, 0.6); margin-top: 1.5rem;}
+        .auth-footer a { color: var(--color-primary); font-weight: 700; text-decoration: none; cursor: pointer; transition: 0.3s; }
+        .auth-footer a:hover { color: var(--color-secondary); text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+
+        /* Form states */
+        .auth-form-wrapper { display: none; animation: slideInFade 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        .auth-form-wrapper.active { display: block; }
+        
+        @keyframes slideInFade {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .input-error { border-color: var(--color-danger) !important; animation: shakeError 0.5s; }
+
+        /* Google Button */
+        .google-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: rgba(255, 255, 255, 0.05); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-bottom: 1.5rem; font-size: 1rem; font-family: 'Nunito', sans-serif; box-sizing: border-box;}
+        .google-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2);}
+        .google-btn img { width: 22px; height: 22px; }
+
+        .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .divider::before { margin-right: .8em; }
+        .divider::after { margin-left: .8em; }
+
+        /* Password Strength */
+        .pwd-strength-container { margin-top: -0.5rem; margin-bottom: 1rem; font-size: 0.8rem; color: #666; display: none; }
+        .pwd-strength { height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 5px; overflow: hidden; display: flex; width: 100%;}
+        .pwd-strength-bar { height: 100%; width: 0; transition: width 0.4s ease, background-color 0.4s ease; }
+
+        /* OTP Inputs */
+        .otp-container { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0; }
+        .otp-container input { 
+            width: 55px; height: 65px; text-align: center; font-size: 2rem; font-weight: 800;
+            border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); outline: none; background: rgba(255, 255, 255, 0.05);
+            color: var(--color-primary); transition: all 0.3s;
+        }
+        .otp-container input:focus { 
+            border-color: var(--color-primary); 
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 188, 212, 0.2); 
+            transform: translateY(-3px);
+        }
+        
+        .timer-text { text-align: center; font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1rem; font-weight: 600;}
+        .timer-text span { color: var(--color-primary); font-weight: 800; }
+        .resend-btn { color: var(--color-primary); background: none; border: none; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0; font-family: 'Nunito', sans-serif;}
+        .resend-btn:disabled { color: #ccc; cursor: not-allowed; text-decoration: none; }
+
+        /* Toast Notifications */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+        .toast { 
+            background: rgba(11, 34, 57, 0.95); backdrop-filter: blur(10px);
+            padding: 1.2rem 1.8rem; border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 15px; 
+            transform: translateX(120%); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            font-weight: 600; color: #ffffff; font-size: 1rem; min-width: 300px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast i { font-size: 1.2rem; }
+        .toast-success i { color: var(--color-secondary); }
+        .toast-error i { color: var(--color-danger); }
+
+        .backend-error { 
+            color: #ff9999; text-align: center; margin-bottom: 1.5rem; font-weight: 600; 
+            background: rgba(231, 76, 60, 0.15); padding: 1rem; border-radius: 12px;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            animation: fadeIn 0.4s;
+        }
+        
+        .illustration-img {
+            max-width: 75%; height: auto; animation: floatIllustration 6s ease-in-out infinite;
+            filter: drop-shadow(0 20px 40px rgba(0, 188, 212, 0.15));
+        }
+        @keyframes floatIllustration { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-15px) scale(1.02); } }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <!-- Content -->
+    <img src="{{ url_for('static', filename='watermark.png') }}" class="watermark" style="opacity: 0.15;" alt="Watermark">
+    
+    <div class="auth-container">
+        <!-- Left: Forms -->
+        <div class="auth-left">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <a href="/" style="text-decoration: none;"><h2><i class="fa-solid fa-brain"></i> brAIn</h2></a>
+                    <p id="auth-subtitle">Secure access to AI-powered brain analysis</p>
+                </div>
+
+                {% if error %}
+                    <div class="backend-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</div>
+                {% endif %}
+
+                <!-- Standard Form that POSTs to Flask backend -->
+                <form id="main-auth-form" method="POST" action="/login{% if next %}?next={{ next }}{% endif %}" style="display:none;">
+                    <input type="email" name="email" id="final-email">
+                    <input type="password" name="password" id="final-password">
+                </form>
+
+                <!-- LOGIN STATE -->
+                <div id="login-state" class="auth-form-wrapper active">
+
+
+                    <div class="input-group">
+                        <i class="fa-solid fa-envelope icon-left"></i>
+                        <input type="email" id="login-email" placeholder="Email Address">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="login-password" placeholder="Password">
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePass('login-password', this)"></i>
+                    </div>
+                    <div class="form-options">
+                        <label style="color: var(--color-text-muted); font-weight: 600;"><input type="checkbox"> Remember me</label>
+                        <a onclick="switchState('forgot-state')">Forgot Password?</a>
+                    </div>
+                    <button class="cta-btn auth-submit" id="btn-login" onclick="handleLogin()">Login <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
+                    <div class="auth-footer">
+                        Don’t have an account? <a onclick="switchState('signup-state')">Sign Up</a>
+                    </div>
+                </div>
+
+                <!-- SIGNUP STATE -->
+                <div id="signup-state" class="auth-form-wrapper">
+                    <form method="POST" action="/signup" id="signup-form" onsubmit="return handleSignup(event)">
+                        <div class="input-group">
+                            <i class="fa-solid fa-user icon-left"></i>
+                            <input type="text" id="signup-name" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-envelope icon-left"></i>
+                            <input type="email" name="email" id="signup-email" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0.5rem;">
+                            <i class="fa-solid fa-lock icon-left"></i>
+                            <input type="password" name="password" id="signup-password" placeholder="Create Password" onkeyup="checkStrength()" required>
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePass('signup-password', this)"></i>
+                        </div>
+                        
+                        <div class="pwd-strength-container" id="pwd-strength-container">
+                            Password Strength: <span id="pwd-strength-text" style="font-weight: 700;">Weak</span>
+                            <div class="pwd-strength">
+                                <div class="pwd-strength-bar" id="pwd-strength-bar"></div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock icon-left"></i>
+                            <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+                        </div>
+                        <button type="submit" class="cta-btn auth-submit" id="btn-signup">Create Account</button>
+                    </form>
+                    <div class="auth-footer">
+                        Already have an account? <a onclick="switchState('login-state')">Login</a>
+                    </div>
+                </div>
+
+                <!-- FORGOT PASSWORD STATE -->
+                <div id="forgot-state" class="auth-form-wrapper">
+                    <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; font-weight: 600;">Enter your email to receive a secure OTP.</p>
+                    <div class="input-group">
+                        <i class="fa-solid fa-envelope icon-left"></i>
+                        <input type="email" id="forgot-email" placeholder="Email Address">
+                    </div>
+                    <button class="cta-btn auth-submit" id="btn-forgot" onclick="handleSendOTP()">Send OTP</button>
+                    <div class="auth-footer">
+                        Back to <a onclick="switchState('login-state')">Login</a>
+                    </div>
+                </div>
+
+                <!-- OTP VERIFICATION STATE -->
+                <div id="otp-state" class="auth-form-wrapper">
+                    <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600;">Enter the 4-digit code sent to your email.</p>
+                    
+                    <div class="otp-container">
+                        <input type="text" maxlength="1" onkeyup="moveToNext(this, event)">
+                        <input type="text" maxlength="1" onkeyup="moveToNext(this, event)">
+                        <input type="text" maxlength="1" onkeyup="moveToNext(this, event)">
+                        <input type="text" maxlength="1" onkeyup="moveToNext(this, event)">
+                    </div>
+
+                    <div class="timer-text">
+                        Resend code in <span id="otp-timer">30</span>s
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <button class="resend-btn" id="btn-resend" onclick="handleSendOTP()" disabled>Resend OTP</button>
+                    </div>
+
+                    <button class="cta-btn auth-submit" id="btn-verify" onclick="handleVerifyOTP()">Verify Code</button>
+                </div>
+
+                <!-- RESET PASSWORD STATE -->
+                <div id="reset-state" class="auth-form-wrapper">
+                    <p style="text-align: center; color: var(--color-text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; font-weight: 600;">Create a new secure password.</p>
+                    
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="reset-password" placeholder="New Password">
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePass('reset-password', this)"></i>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="reset-confirm" placeholder="Confirm New Password">
+                    </div>
+                    <button class="cta-btn auth-submit" id="btn-reset" onclick="handleResetPassword()">Update Password</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right: Illustration -->
+        <div class="auth-right">
+            <div class="illustration-content" style="text-align: center; max-width: 80%; z-index: 10;">
+                <div class="badge" style="display: inline-block; padding: 0.5rem 1.2rem; background: rgba(0, 188, 212, 0.1); border: 1px solid var(--color-primary); border-radius: 50px; color: #ffffff; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2rem;">
+                    AI Neuro-Diagnostic Engine
+                </div>
+                <h1 style="color: #ffffff; font-size: 3.5rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; font-family: 'Georgia', serif;">
+                    Advance Your <span style="color: var(--color-primary);">Medical</span> Diagnostics
+                </h1>
+                <p style="color: rgba(255, 255, 255, 0.7); font-size: 1.1rem; margin-bottom: 3rem; line-height: 1.6;">
+                    Empowering healthcare professionals with state-of-the-art AI analysis for precise brain tumor detection.
+                </p>
+                <img src="{{ url_for('static', filename='auth_illustration.jpeg') }}" class="illustration-img" style="max-width: 95%; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);" alt="Brain AI Illustration">
+            </div>
+            
+            <!-- Decorative Elements -->
+            <div class="neural-grid" style="opacity: 0.3;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let resetEmail = "";
+        let timerInterval;
+        let otpFlowType = 'forgot';
+        let nextUrl = "{{ next or '/home' }}";
+
+        // UI Helpers
+        function showToast(message, type='success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => { toast.classList.add('show'); }, 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        function togglePass(inputId, iconElement) {
+            const el = document.getElementById(inputId);
+            if(el.type === 'password') {
+                el.type = 'text';
+                iconElement.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                el.type = 'password';
+                iconElement.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function switchState(targetId) {
+            document.querySelectorAll('.auth-form-wrapper').forEach(el => el.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            const subtitle = document.getElementById('auth-subtitle');
+            if(targetId === 'login-state') subtitle.innerText = "Secure access to AI-powered brain analysis";
+            if(targetId === 'signup-state') subtitle.innerText = "Create an account to access brAIn";
+            if(targetId === 'forgot-state') subtitle.innerText = "Recover your account";
+            if(targetId === 'otp-state') subtitle.innerText = "Verify your identity";
+            if(targetId === 'reset-state') subtitle.innerText = "Reset your password";
+        }
+
+        function flashError(inputElement) {
+            inputElement.classList.add('input-error');
+            setTimeout(() => inputElement.classList.remove('input-error'), 500);
+        }
+
+        function showLoading(btn, text="Processing...") {
+            if(!btn.dataset.original) btn.dataset.original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${text}`;
+        }
+        function hideLoading(btn) {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.original;
+        }
+
+        // Feature Logic
+        function checkStrength() {
+            const pwd = document.getElementById('signup-password').value;
+            const container = document.getElementById('pwd-strength-container');
+            const bar = document.getElementById('pwd-strength-bar');
+            const text = document.getElementById('pwd-strength-text');
+            
+            if(pwd.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+
+            let strength = 0;
+            if(pwd.length >= 6) strength++;
+            if(pwd.match(/[A-Z]/)) strength++;
+            if(pwd.match(/[0-9]/)) strength++;
+            if(pwd.match(/[^a-zA-Z0-9]/)) strength++;
+
+            if(strength <= 1) {
+                bar.style.width = '33%'; bar.style.backgroundColor = 'var(--color-danger)'; text.innerText = 'Weak'; text.style.color = 'var(--color-danger)';
+            } else if(strength === 2 || strength === 3) {
+                bar.style.width = '66%'; bar.style.backgroundColor = '#f39c12'; text.innerText = 'Medium'; text.style.color = '#f39c12';
+            } else {
+                bar.style.width = '100%'; bar.style.backgroundColor = 'var(--color-secondary)'; text.innerText = 'Strong'; text.style.color = 'var(--color-secondary)';
+            }
+        }
+
+        // OTP Timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            let timeLeft = 30;
+            const timerEl = document.getElementById('otp-timer');
+            const resendBtn = document.getElementById('btn-resend');
+            
+            resendBtn.disabled = true;
+            timerEl.innerText = timeLeft;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    resendBtn.disabled = false;
+                    timerEl.innerText = "0";
+                }
+            }, 1000);
+        }
+
+        // OTP input auto-advance
+        function moveToNext(input, event) {
+            if(input.value.length >= 1 && input.nextElementSibling) {
+                input.nextElementSibling.focus();
+            }
+            if(event.key === "Backspace" && input.previousElementSibling && input.value.length === 0) {
+                input.previousElementSibling.focus();
+            }
+        }
+
+        function getOTPValue() {
+            const inputs = document.querySelectorAll('.otp-container input');
+            let otp = "";
+            inputs.forEach(inp => otp += inp.value);
+            return otp;
+        }
+
+        // Auth Actions
+        function handleLogin() {
+            const email = document.getElementById('login-email');
+            const pass = document.getElementById('login-password');
+            const btn = document.getElementById('btn-login');
+
+            if(!email.value || !pass.value) {
+                if(!email.value) flashError(email);
+                if(!pass.value) flashError(pass);
+                return;
+            }
+
+            showLoading(btn, "Authenticating...");
+            setTimeout(() => { 
+                document.getElementById('final-email').value = email.value;
+                document.getElementById('final-password').value = pass.value;
+                document.getElementById('main-auth-form').submit();
+            }, 800);
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name');
+            const email = document.getElementById('signup-email');
+            const pass = document.getElementById('signup-password');
+            const confirm = document.getElementById('signup-confirm');
+            const btn = document.getElementById('btn-signup');
+
+            if(pass.value !== confirm.value) {
+                flashError(confirm);
+                showToast("Passwords do not match!", "error");
+                return false;
+            }
+
+            showLoading(btn, "Sending OTP...");
+            try {
+                const response = await fetch('/signup_init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.value, email: email.value, password: pass.value })
+                });
+                const data = await response.json();
+                if(response.ok) {
+                    showToast("OTP sent to your email!", "success");
+                    resetEmail = email.value; 
+                    otpFlowType = 'signup';
+                    switchState('otp-state');
+                    startTimer();
+                } else {
+                    showToast(data.error || "Signup failed", "error");
+                }
+            } catch (err) {
+                showToast("Network error", "error");
+            }
+            hideLoading(btn);
+            return false;
+        }
+
+        async function handleSendOTP() {
+            if (document.getElementById('forgot-state').classList.contains('active')) {
+                otpFlowType = 'forgot';
+            }
+            const emailEl = document.getElementById('forgot-email');
+            if(!emailEl.value && resetEmail === "") { flashError(emailEl); return; }
+            
+            const email = emailEl.value || resetEmail;
+            resetEmail = email; // Store for verification
+            const btn = document.getElementById(document.getElementById('forgot-state').classList.contains('active') ? 'btn-forgot' : 'btn-resend');
+            
+            if(btn.id === 'btn-forgot') showLoading(btn, "Sending OTP...");
+
+            try {
+                const response = await fetch('/send_otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                if(response.ok) {
+                    showToast("OTP sent to your email!", "success");
+                    // Show OTP in console for easy local testing
+                    console.log("TESTING: OTP is", data.otp);
+                    
+                    switchState('otp-state');
+                    startTimer();
+                } else {
+                    showToast(data.error || "Failed to send OTP", "error");
+                }
+            } catch (err) {
+                showToast("Network error", "error");
+            }
+            if(btn.id === 'btn-forgot') hideLoading(btn);
+        }
+
+        async function handleVerifyOTP() {
+            const otp = getOTPValue();
+            const btn = document.getElementById('btn-verify');
+            
+            if(otp.length !== 4) {
+                showToast("Please enter a 4-digit OTP", "error");
+                return;
+            }
+
+            showLoading(btn, "Verifying...");
+            const endpoint = otpFlowType === 'signup' ? '/signup_verify' : '/verify_otp';
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmail, otp: otp })
+                });
+                
+                const data = await response.json();
+                if(response.ok) {
+                    showToast("OTP verified!", "success");
+                    clearInterval(timerInterval);
+                    if (otpFlowType === 'signup') {
+                        setTimeout(() => window.location.href = nextUrl, 1000);
+                    } else {
+                        setTimeout(() => switchState('reset-state'), 500);
+                    }
+                } else {
+                    showToast(data.error || "Invalid OTP", "error");
+                }
+            } catch (err) {
+                showToast("Network error", "error");
+            }
+            hideLoading(btn);
+        }
+
+        async function handleResetPassword() {
+            const pass = document.getElementById('reset-password');
+            const confirm = document.getElementById('reset-confirm');
+            const btn = document.getElementById('btn-reset');
+
+            if(!pass.value || pass.value !== confirm.value) {
+                if(!pass.value) flashError(pass);
+                if(pass.value !== confirm.value) { flashError(confirm); showToast("Passwords do not match!", "error"); }
+                return;
+            }
+
+            showLoading(btn, "Updating Password...");
+            try {
+                const response = await fetch('/reset_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmail, password: pass.value })
+                });
+                
+                const data = await response.json();
+                if(response.ok) {
+                    showToast("Password updated successfully!", "success");
+                    setTimeout(() => switchState('login-state'), 1500);
+                } else {
+                    showToast(data.error || "Failed to update password", "error");
+                }
+            } catch (err) {
+                showToast("Network error", "error");
+            }
+            hideLoading(btn);
+        }
+
+        async function mockGoogleAuth() {
+            // Mocking a successful Google sign in for demonstration
+            showToast("Logging in with Google...", "success");
+            try {
+                const response = await fetch('/google_auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: "demo.google@example.com", name: "Google User" })
+                });
+                
+                if(response.ok) {
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+                } else {
+                    showToast("Google Auth Failed", "error");
+                }
+            } catch (err) {
+                showToast("Network error", "error");
+            }
+        }
+
+        // Check if we came from 'Sign up for free' button
+        window.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('openSignup') === 'true') {
+                switchState('signup-state');
+                localStorage.removeItem('openSignup');
+            }
+        });
+    </script>
+</body>
+</html>

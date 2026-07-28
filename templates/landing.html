@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your AI Partner in Neuro Care - Brain Tumor Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00bcd4;
+            --primary-dark: #0097a7;
+            --text-main: #1C2B36;
+            --text-light: #6189a3;
+            --bg-color: #F8FBFF;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #0b2239;
+            /* Matching the dark blue in the image */
+            background-image: linear-gradient(rgba(11, 34, 57, 0.7), rgba(11, 34, 57, 0.7)), url('/static/watermark.png');
+            background-size: 130%;
+            /* Zoomed in as requested */
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* Ambient Background Nodes */
+        .bg-nodes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(#e0eff5 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .gradient-blob {
+            position: absolute;
+            top: -10%;
+            right: -5%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(0, 188, 212, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+
+        .gradient-blob-2 {
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(0, 188, 212, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .logo i {
+            color: #ffffff;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px #ffffff, 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .btn-outline {
+            border-color: #E2E8F0;
+            color: var(--text-main);
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 188, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 5%;
+            gap: 2rem;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 550px;
+            z-index: 10;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 188, 212, 0.1);
+            color: var(--primary-dark);
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 188, 212, 0.2);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin: 0 0 1.5rem 0;
+            color: #ffffff;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-large {
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Image Container */
+        .hero-image-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-image {
+            width: 100%;
+            max-width: 550px;
+            /* Minimized version */
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+            object-fit: cover;
+            animation: floatHero 6s ease-in-out infinite;
+        }
+
+        @keyframes floatHero {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                margin-top: 3rem;
+            }
+
+            .hero-content {
+                max-width: 100%;
+                align-items: center;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-nodes"></div>
+    <div class="gradient-blob"></div>
+    <div class="gradient-blob-2"></div>
+
+    <nav>
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i> brAIn
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('about') }}">About Us</a>
+            <a href="{{ url_for('vos') }}">Survivors</a>
+            <a href="{{ url_for('dashboard') }}">Upload MRI</a>
+            <a href="{{ url_for('donation') }}">Make/Seek Donations</a>
+            <a href="{{ url_for('directories') }}">Directories</a>
+        </div>
+        <div class="nav-buttons">
+            {% if user %}
+            <span style="color: white; opacity: 0.8; margin-right: 1rem;">Hello, {{ user }}</span>
+            <a href="/logout" style="color: white; text-decoration: none;"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+            {% else %}
+            <a href="/login" class="btn btn-primary" style="padding: 0.5rem 1.5rem;">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="hero-content">
+            <div class="badge">Medical conversation</div>
+            <h1>Your AI Partner in Neuro Care</h1>
+            <p>Upload your MRI scans securely and let our advanced AI system analyze them with precision.
+                Receive intelligent insights that help identify potential abnormalities and tumor patterns.</p>
+            <div class="hero-buttons">
+                {% if user %}
+                <a href="/dashboard" class="btn btn-primary btn-large">Go to Dashboard</a>
+                <a href="/logout" class="btn btn-outline btn-large">Logout</a>
+                {% else %}
+                <a href="/login" class="btn btn-primary btn-large">Log In</a>
+                <a href="/login" class="btn btn-outline btn-large" onclick="localStorage.setItem('openSignup', 'true')">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="hero-image-container">
+            <img src="{{ url_for('static', filename='landing_hero.png') }}"
+                alt="Doctor interacting with AI Brain Analysis" class="main-image">
+        </div>
+    </main>
+
+    <script>
+        // Simple script to switch to signup tab automatically if "Sign up for free" was clicked
+        if (window.location.pathname === '/' && localStorage.getItem('openSignup') === 'true') {
+            // we are on landing page, do nothing here. The logic is handled on login page
+        }
+    </script>
+</body>
+
+</html>

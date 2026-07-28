@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice of Survivors - brAIn Community</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary: #00bcd4;
+            --accent: #2ECC71;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 320px;
+        }
+
+        body {
+            background-color: #0b2239;
+            background-image: linear-gradient(rgba(11, 34, 57, 0.9), rgba(11, 34, 57, 0.9)), url('/static/watermark.png');
+            background-size: 130%;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* We'll use internal scrolling */
+        }
+
+        .vos-page {
+            display: flex;
+            height: calc(100vh - 70px); /* Adjust for navbar */
+            margin-top: 70px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.02);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-share-trigger {
+            background: linear-gradient(135deg, var(--primary), #0097a7);
+            color: white;
+            padding: 1.2rem;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 20px rgba(0, 188, 212, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-share-trigger:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 188, 212, 0.4);
+        }
+
+        .sidebar-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            opacity: 0.8;
+            padding-left: 0.5rem;
+        }
+
+        .story-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .story-nav-item {
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .story-nav-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(0, 188, 212, 0.3);
+            transform: translateX(5px);
+        }
+
+        .story-nav-item.active {
+            background: rgba(0, 188, 212, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Main Content Styles */
+        .content-area {
+            flex: 1;
+            padding: 4rem 5%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .viewer-container {
+            max-width: 850px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .story-display {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 4rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .display-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .display-title {
+            font-size: 3.5rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 2.5rem;
+            background: linear-gradient(to right, #ffffff, #a5f3fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .display-journey {
+            font-size: 1.3rem;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: pre-wrap;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            border: 2px dashed var(--glass-border);
+            border-radius: 40px;
+            padding: 4rem;
+        }
+
+        .form-title {
+            font-size: 2.5rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        /* Utils */
+        .empty-state {
+            text-align: center;
+            padding: 5rem;
+            opacity: 0.6;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        .author-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .author-avatar-big {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            box-shadow: 0 0 20px rgba(0, 188, 212, 0.4);
+        }
+
+        .meds-box {
+            margin-top: 3rem;
+            background: rgba(46, 204, 113, 0.08);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .form-group { margin-bottom: 2rem; }
+        .form-group label { display: block; margin-bottom: 0.8rem; font-weight: 700; color: var(--primary); }
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.2rem;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-control:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
+        .btn-submit {
+            width: 100%;
+            padding: 1.2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 15px;
+            border: none;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { background: #0097a7; transform: scale(1.01); }
+
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar" style="position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(11, 34, 57, 0.95);">
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i> brAIn
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/vos" class="active">Survivors</a>
+            <a href="/dashboard">Upload MRI</a>
+            <a href="/donation">Make/Seek Donations</a>
+        </div>
+        {% if session.get('user') %}
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="opacity: 0.7; font-size: 0.9rem;">Hello, <span style="font-weight: 700; color: var(--primary);">{{ session.get('user') }}</span></span>
+            <a href="/logout" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </div>
+        {% else %}
+        <a href="/login?next=/vos" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">Login / Join</a>
+        {% endif %}
+    </nav>
+
+    <div class="vos-page">
+        <!-- Sidebar: Story Titles -->
+        <aside class="sidebar">
+            <button class="btn-share-trigger" onclick="showForm()">
+                <i class="fa-solid fa-plus-circle"></i> Share My Story
+            </button>
+
+            <div class="sidebar-title">Survival Journeys</div>
+            <div class="story-list" id="sidebar-list">
+                {% if stories %}
+                    {% for story in stories %}
+                    <div class="story-nav-item" onclick="viewStory({{ loop.index0 }})" data-index="{{ loop.index0 }}">
+                        {{ story.title }}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="opacity: 0.4; font-size: 0.9rem; padding: 1rem;">No stories shared yet.</div>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <div id="main-viewer" class="viewer-container">
+                <!-- Content injected here via JS -->
+                <div class="empty-state">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                    <h2>Welcome to the Sanctuary</h2>
+                    <p>Select a story from the sidebar to read a journey of hope, or click "Share My Story" to inspire others with your own.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Story Data Injection
+        const stories = [
+            {% for story in stories %}
+            {
+                title: {{ story.title | tojson }},
+                author: {{ story.author | tojson }},
+                timestamp: {{ story.timestamp | tojson }},
+                journey: {{ story.journey | tojson }},
+                medications: {{ story.medications | tojson }}
+            },
+            {% endfor %}
+        ];
+
+        const mainViewer = document.getElementById('main-viewer');
+        const sidebarItems = document.querySelectorAll('.story-nav-item');
+
+        function viewStory(index) {
+            const story = stories[index];
+            
+            // Update UI Active State
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-index="${index}"]`).classList.add('active');
+
+            let medsHtml = story.medications ? `
+                <div class="meds-box">
+                    <h4 style="color: var(--accent); margin-bottom: 1rem;"><i class="fa-solid fa-capsules"></i> Medications & Support</h4>
+                    <p style="opacity: 0.9; line-height: 1.6;">${story.medications}</p>
+                </div>
+            ` : '';
+
+            mainViewer.innerHTML = `
+                <div class="story-display">
+                    <div class="display-header">
+                        <div class="author-badge">
+                            <div class="author-avatar-big">${story.author[0].toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight: 800; font-size: 1.2rem;">${story.author}</div>
+                                <div style="opacity: 0.6; font-size: 0.9rem;">Published ${story.timestamp}</div>
+                            </div>
+                        </div>
+                        <div style="color: var(--accent); font-weight: 700;"><i class="fa-solid fa-ribbon"></i> Survivor</div>
+                    </div>
+                    
+                    <h1 class="display-title">${story.title}</h1>
+                    <div class="display-journey">${story.journey}</div>
+                    
+                    ${medsHtml}
+                </div>
+            `;
+            mainViewer.scrollTop = 0;
+        }
+
+        function showForm() {
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            
+            {% if session.get('user') %}
+            mainViewer.innerHTML = `
+                <div class="form-container">
+                    <h2 class="form-title">Share Your Survival Story</h2>
+                    <p style="margin-bottom: 2.5rem; opacity: 0.7; line-height: 1.6;">Your words can be the light for someone still in the dark. Share your experience, your struggles, and your ultimate victory.</p>
+                    
+                    <form action="/add_story" method="POST">
+                        <div class="form-group">
+                            <label>Story Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g., The Strength I Never Knew I Had" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Your Journey</label>
+                            <textarea name="journey" class="form-control" placeholder="Tell us your story..." style="min-height: 250px;" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Medications & Support (Optional)</label>
+                            <input type="text" name="medications" class="form-control" placeholder="What helped you get through?">
+                        </div>
+                        <button type="submit" class="btn-submit">Publish My Story</button>
+                    </form>
+                </div>
+            `;
+            {% else %}
+            mainViewer.innerHTML = `
+                <div class="form-container" style="text-align: center; border-style: solid;">
+                    <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
+                    <h2 class="form-title">Join to Contribute</h2>
+                    <p style="margin-bottom: 3rem; opacity: 0.8; font-size: 1.2rem;">Please log in to your account to share your journey with the community.</p>
+                    <a href="/login?next=/vos" class="btn-submit" style="display: block; text-decoration: none; max-width: 300px; margin: 0 auto;">Log In to Continue</a>
+                </div>
+            `;
+            {% endif %}
+        }
+
+        // Auto-load first story if exists
+        if (stories.length > 0) {
+            // viewStory(0); // Uncomment to auto-load first story
+        }
+    </script>
+</body>
+</html>

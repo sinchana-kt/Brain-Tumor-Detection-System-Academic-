@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Portal - brAIn Care</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary: #00bcd4;
+            --accent: #2ECC71;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: #0b2239;
+            background-image: linear-gradient(rgba(11, 34, 57, 0.8), rgba(11, 34, 57, 0.8)), url('/static/watermark.png');
+            background-size: 130%;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 5%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            background: linear-gradient(to bottom, #ffffff, #a5f3fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .choice-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .choice-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .choice-card i {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeInUp 0.6s both;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Seek Form */
+        .donation-form {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: white;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 188, 212, 0.2);
+        }
+
+        /* Make List */
+        .donation-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .patient-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .amount-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--accent);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-weight: 700;
+            border: 1px solid var(--accent);
+        }
+
+        .hospital-tag {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #0097a7; transform: scale(1.02); }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            opacity: 1;
+        }
+
+        .choice-card h2, .patient-card h3, .view-section h2 {
+            color: #ffffff;
+        }
+
+        .choice-card p, .patient-card p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo"><i class="fa-solid fa-brain"></i> brAIn</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/vos">Survivors</a>
+            <a href="/dashboard">Upload MRI</a>
+            <a href="/donation" class="active">Donations</a>
+        </div>
+        {% if session.get('user') %}<div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="opacity: 0.7; font-size: 0.9rem; color: #ffffff;">Hello, <span
+                    style="font-weight: 700; color: var(--primary);">{{ session.get('user') }}</span></span>
+            <a href="/logout" style="color: #ffffff; opacity: 0.7; transition: 0.3s;"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </div>{% endif %}
+    </nav>
+
+    <main class="container">
+        <header>
+            <h1>Make or Seek Donations</h1>
+            <p style="opacity: 0.7; max-width: 600px; margin: 0 auto;">Connecting generous hearts with brain tumor warriors in need of financial support.</p>
+        </header>
+
+        <div id="selection-view" class="view-section active">
+            <div class="selection-grid">
+                <div class="choice-card" onclick="showSection('make-view')">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                    <h2>Make a Donation</h2>
+                    <p>Support a survivor and help them in their recovery journey.</p>
+                </div>
+                <div class="choice-card" onclick="showSection('seek-view')">
+                    <i class="fa-solid fa-notes-medical"></i>
+                    <h2>Seek Support</h2>
+                    <p>Tell your story and request financial aid for your treatment.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seek Support View -->
+        <div id="seek-view" class="view-section">
+            <button class="btn-back" onclick="showSection('selection-view')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <div class="donation-form">
+                <h2 style="margin-bottom: 2rem;">Support Request Form</h2>
+                <form action="/submit_seek" method="POST" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Patient Name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hospital Name</label>
+                            <input type="text" name="hospital" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Case/Medical ID</label>
+                            <input type="text" name="case_id" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount Needed (₹)</label>
+                        <input type="number" name="amount" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Story & Condition</label>
+                        <textarea name="story" class="form-control" style="min-height: 120px;" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Proof (Photos/Reports)</label>
+                        <input type="file" name="proof" class="form-control" multiple accept="image/*">
+                        <small style="opacity: 0.6;">Maximum 3 photos for verification.</small>
+                    </div>
+                    <button type="submit" class="btn-action btn-primary">Submit Support Request</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Make Donation View -->
+        <div id="make-view" class="view-section">
+            <button class="btn-back" onclick="showSection('selection-view')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <h2 style="margin-bottom: 2rem; text-align: center;">Support Requests</h2>
+            <div class="donation-list">
+                {% if donations %}
+                    {% for d in donations %}
+                    <div class="patient-card">
+                        <div class="amount-badge">₹{{ d.amount }}</div>
+                        <div class="hospital-tag"><i class="fa-solid fa-hospital"></i> {{ d.hospital }}</div>
+                        {% if d.image_data %}
+                        <img src="data:image/jpeg;base64,{{ d.image_data }}" style="width:100%; height:200px; object-fit:cover; border-radius:15px; margin-bottom:1rem;">
+                        {% endif %}
+                        <h3 style="margin-bottom: 1rem;">{{ d.name }}</h3>
+                        <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">{{ d.story[:150] }}...</p>
+                        <div style="font-size: 0.85rem; opacity: 0.6;">
+                            Case ID: {{ d.case_id }}<br>
+                            Posted: {{ d.timestamp }}
+                        </div>
+                        <button class="btn-action btn-primary" onclick="alert('Contact: {{ d.contact }}')">Contribute & Contact</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; grid-column: 1/-1; opacity: 0.5;">No active support requests found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

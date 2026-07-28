@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>brAIn - AI-powered brain tumor detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- Background Watermark (Caduceus Image) -->
+    <img src="{{ url_for('static', filename='watermark.png') }}" class="watermark" alt="Medical Watermark">
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i> brAIn
+        </div>
+        <div class="nav-links" style="margin-left: 2rem;">
+            <a href="/" style="text-decoration: none; color: white; opacity: 0.8;">Home</a>
+            <a href="/about" style="text-decoration: none; color: white; opacity: 0.8;">About</a>
+        </div>
+        <div class="nav-links" style="margin-left: auto;">
+            <span style="font-size: 0.9rem; opacity: 0.7;">Welcome back,</span>
+            <span style="font-weight: 700;">{{ user }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-link" style="margin-left: 1rem;"><i
+                    class="fa-solid fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- Hero / Upload Section -->
+        <section id="upload-section" class="hero section-card upload-section">
+            <div class="badge"
+                style="display: inline-block; padding: 0.4rem 1rem; background: rgba(0, 188, 212, 0.1); border: 1px solid var(--color-primary); border-radius: 50px; font-size: 0.8rem; font-weight: 700; color: var(--color-primary); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px;">
+                AI Neuro Analysis</div>
+            <h1 style="color: white; margin-bottom: 0.5rem;">Detect Brain Tumors with AI</h1>
+            <p style="opacity: 0.7; margin-bottom: 2rem;">Precision-driven MRI analysis for early detection and care.
+            </p>
+
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="drop-zone" id="drop-zone">
+                    <span class="drop-zone-prompt">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <br>Drag & drop MRI scan
+                        <br><span
+                            style="font-size: 0.9rem; color: var(--color-text-muted); display: block; margin: 10px 0;">—
+                            OR —</span>
+                        <div class="cta-btn"
+                            style="display: inline-block; font-size: 0.95rem; padding: 0.6rem 1.8rem; pointer-events: none;">
+                            Upload Scan</div>
+                    </span>
+                    <input type="file" name="file" id="file-input" accept="image/*" hidden>
+                </div>
+                <div class="preview-container" id="preview-container" style="display: none;">
+                    <div id="scanning-overlay" class="scanning-overlay" style="display: none;"></div>
+                    <div id="neural-grid" class="neural-grid" style="display: none;"></div>
+                    <img id="image-preview" src="#" alt="MRI Preview">
+                    <button type="button" class="remove-btn" id="remove-btn"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <button type="submit" class="analyze-btn" id="analyze-btn" disabled
+                    style="width: 100%; max-width: 400px; margin-top: 1rem; font-size: 1.1rem; padding: 1.2rem;">Start
+                    Deep Analysis</button>
+            </form>
+        </section>
+
+        <!-- Scanning / Loading Section -->
+        <section id="scanning-section" class="scanning-section section-card" style="display: none;">
+            <h3>Analyzing Brain Scan...</h3>
+            <div class="ecg-container">
+                <!-- SVG ECG Line -->
+                <svg viewBox="0 0 500 100" class="ecg-line">
+                    <polyline points="0,50 150,50 170,20 190,90 220,10 240,70 260,50 500,50" />
+                </svg>
+            </div>
+            <div class="pulsing-circles">
+                <div class="circle c1"></div>
+                <div class="circle c2"></div>
+                <div class="circle c3"></div>
+            </div>
+        </section>
+
+        <!-- Result Display Section -->
+        <section id="result-section" class="result-section section-card" style="display: none;">
+            <div id="result-card" class="result-card">
+                <i id="result-icon" class="fa-solid fa-circle-check"></i>
+                <h3 id="result-text">Analysis Complete</h3>
+
+                <div id="result-tips" class="result-tips">
+                    <!-- Tips injected via JS -->
+                </div>
+            </div>
+            <button class="cta-btn retry-btn" id="retry-btn" style="margin-top: 1rem; width: 100%;">Upload Another
+                Scan</button>
+        </section>
+
+        <!-- Brain Health Tips Section (Cloud Format) -->
+        <section class="tips-section section-card" id="tips-cloud-section">
+            <h3 style="text-align: center; margin-bottom: 2rem;"><i class="fa-solid fa-lightbulb"></i> Did You Know?
+            </h3>
+            <div class="brain-cloud-container" id="brain-cloud-container">
+                <!-- Center Brain -->
+                <div class="brain-center">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+
+                <!-- Cloud 1 -->
+                <div class="cloud-wrapper cloud-1">
+                    <div class="fluffy-cloud">
+                        <h4 id="cloud-title-1">Did you know?</h4>
+                        <p id="cloud-text-1">Loading...</p>
+                    </div>
+                    <div class="thought-dot dot-1"></div>
+                    <div class="thought-dot dot-2"></div>
+                </div>
+
+                <!-- Cloud 2 -->
+                <div class="cloud-wrapper cloud-2">
+                    <div class="fluffy-cloud">
+                        <h4 id="cloud-title-2">Did you know?</h4>
+                        <p id="cloud-text-2">Loading...</p>
+                    </div>
+                    <div class="thought-dot dot-1"></div>
+                    <div class="thought-dot dot-2"></div>
+                </div>
+
+                <!-- Cloud 3 -->
+                <div class="cloud-wrapper cloud-3">
+                    <div class="fluffy-cloud">
+                        <h4 id="cloud-title-3">Did you know?</h4>
+                        <p id="cloud-text-3">Loading...</p>
+                    </div>
+                    <div class="thought-dot dot-1"></div>
+                    <div class="thought-dot dot-2"></div>
+                </div>
+
+                <!-- Cloud 4 -->
+                <div class="cloud-wrapper cloud-4">
+                    <div class="fluffy-cloud">
+                        <h4 id="cloud-title-4">Did you know?</h4>
+                        <p id="cloud-text-4">Loading...</p>
+                    </div>
+                    <div class="thought-dot dot-1"></div>
+                    <div class="thought-dot dot-2"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about section-card">
+            <h3><i class="fa-solid fa-circle-info"></i> About brAIn</h3>
+
+            <div style="display: grid; gap: 1.5rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <i class="fa-solid fa-hospital"
+                        style="color: var(--color-primary); font-size: 1.4rem; margin-top: 3px; flex-shrink: 0;"></i>
+                    <p style="margin: 0;">We are dedicated to transforming healthcare through intelligent and
+                        responsible technology. Our platform is designed to assist in the early detection of brain
+                        tumors by combining advanced artificial intelligence with medical imaging analysis.</p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <i class="fa-solid fa-microscope"
+                        style="color: var(--color-primary); font-size: 1.4rem; margin-top: 3px; flex-shrink: 0;"></i>
+                    <p style="margin: 0;">By allowing users to securely upload MRI scans, our system delivers fast and
+                        insightful predictions, confidence scores, and visual heatmap explanations to support better
+                        understanding of results. We focus on accuracy, transparency, and user-friendly design to make
+                        AI-powered healthcare more accessible.</p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <i class="fa-solid fa-handshake-angle"
+                        style="color: var(--color-primary); font-size: 1.4rem; margin-top: 3px; flex-shrink: 0;"></i>
+                    <p style="margin: 0;">Our mission is to bridge the gap between medical expertise and modern
+                        innovation, helping patients, students, and healthcare professionals make informed decisions
+                        faster.</p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <i class="fa-solid fa-shield-halved"
+                        style="color: var(--color-primary); font-size: 1.4rem; margin-top: 3px; flex-shrink: 0;"></i>
+                    <p style="margin: 0;">With a commitment to ethical AI, privacy, and continuous improvement, we aim
+                        to build a smarter future for brain health screening and diagnostic support.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chat-window" style="display: none;">
+        <div class="chat-header">
+            <h3><img src="{{ url_for('static', filename='robot_avatar.png') }}" class="chat-header-avatar" alt="Bot">
+                brAIny Assistant</h3>
+            <button id="close-chat-btn"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="message bot-message">
+                Hello! I am brAIny. How can I help you today?
+                <ul class="chat-list">
+                    <li>Ask about symptoms</li>
+                    <li>Brain health tips</li>
+                    <li>General guidance</li>
+                </ul>
+            </div>
+        </div>
+        <div class="chat-suggestions" id="chat-suggestions">
+            <button class="suggestion-btn" data-query="What forms a brain tumor?">What forms a brain tumor?</button>
+            <button class="suggestion-btn" data-query="Give me brain health tips.">Give me brain health tips.</button>
+            <button class="suggestion-btn" data-query="What are the symptoms?">What are the symptoms?</button>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type your message...">
+            <button id="send-chat-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Chatbot Floating Button -->
+    <button class="chatbot-btn" id="chatbot-btn">
+        <img src="{{ url_for('static', filename='robot_avatar.png') }}" alt="brAIny Avatar">
+    </button>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
