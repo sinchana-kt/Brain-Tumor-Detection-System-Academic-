@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import gdown
 import numpy as np
 import tensorflow as tf
@@ -239,6 +241,7 @@ def about():
 # ------------------ LOGIN / REGISTER ------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -359,12 +362,13 @@ def logout():
 
 # ------------------ PREDICT ------------------
 @app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if 'user' not in session:
-        return "Unauthorized", 401
+    print("SESSION:", dict(session))
 
-    if 'file' not in request.files:
-        return "No file uploaded", 400
+    if 'user' not in session:
+        print("Unauthorized! Session =", dict(session))
+        return "Unauthorized", 401
 
     file = request.files['file']
     if file.filename == '':
@@ -471,38 +475,30 @@ SMTP_PORT = 587
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")  
 SENDER_PASSWORD = os.getenv("SENDER_PASSWORD") 
 
+import resend
+import os
+
+resend.api_key = os.getenv("RESEND_API_KEY")
+
 def send_email_otp(recipient, otp, is_signup=False):
     try:
-        print("Step 1: Preparing email")
+        subject = (
+            "brAIn - Verify your Email"
+            if is_signup
+            else "brAIn - Password Reset OTP"
+        )
 
-        subject = "brAIn - Verify your email" if is_signup else "brAIn - Password Reset OTP"
-        msg = MIMEText(f"Your OTP is: {otp}\nIt will expire in 10 minutes.")
-        msg['Subject'] = subject
-        msg['From'] = SENDER_EMAIL
-        msg['To'] = recipient
+        resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": recipient,
+            "subject": subject,
+            "text": f"Your OTP is {otp}. It expires in 10 minutes."
+        })
 
-        print("Step 2: Connecting to SMTP")
-        print("Creating SMTP object...")
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=20)
-        print("SMTP object created")
-
-        print("Step 3: Starting TLS")
-        server.starttls()
-
-        print("Step 4: Logging in")
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-
-        print("Step 5: Sending email")
-        server.send_message(msg)
-
-        print("Step 6: Closing connection")
-        server.quit()
-
-        print("Step 7: Success")
         return True
 
     except Exception as e:
-        print("Email sending error:", repr(e))
+        print(e)
         return False
 
 @app.route("/send_otp", methods=["POST"])
