@@ -361,91 +361,36 @@ def logout():
     return redirect(url_for('login'))
 
 # ------------------ PREDICT ------------------
-@app.route("/predict", methods=["POST"])
+#@app.route("/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
 def predict():
-    print("SESSION:", dict(session))
+    try:
+        print("Predict route called")
 
-    if 'user' not in session:
-        print("Unauthorized! Session =", dict(session))
-        return "Unauthorized", 401
+        file = request.files['file']
+        print("Filename:", file.filename)
 
-    file = request.files['file']
-    if file.filename == '':
-        return "No selected file", 400
+        file_bytes = file.read()
+        print("Image bytes:", len(file_bytes))
 
-    file_bytes = file.read()
-    img = preprocess_image(BytesIO(file_bytes))
+        img = preprocess_image(BytesIO(file_bytes))
 
-    npimg = np.frombuffer(file_bytes, np.uint8)
-    original_img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-    original_img = cv2.resize(original_img, IMG_SIZE)
+        npimg = np.frombuffer(file_bytes, np.uint8)
+        original_img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+        print("Original image:", original_img.shape)
 
-    current_model = get_model()
-    preds = current_model.predict(img)[0]
-    class_index = np.argmax(preds)
-    confidence = float(preds[class_index])
-    label = CLASS_MAP[class_index]
+        current_model = get_model()
+        print("Model loaded")
 
-    # GRAD-CAM
-    last_conv_layer = None
-    for layer in reversed(current_model.layers):
-        if isinstance(layer, tf.keras.layers.Conv2D):
-            last_conv_layer = layer.name
-            break
+        preds = current_model.predict(img)[0]
+        print("Prediction:", preds)
 
-    heatmap_img_base64 = None
-    if last_conv_layer:
-        grad_model = tf.keras.models.Model(
-            [current_model.inputs],
-            [current_model.get_layer(last_conv_layer).output, current_model.output]
-        )
-        with tf.GradientTape() as tape:
-            conv_outputs, predictions = grad_model(img)
-            class_channel = predictions[:, np.argmax(predictions[0])]
-        grads = tape.gradient(class_channel, conv_outputs)
-        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-        conv_outputs = conv_outputs[0]
-        heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
-        heatmap = tf.squeeze(heatmap).numpy()
-        heatmap = np.maximum(heatmap, 0)
-        if np.max(heatmap) != 0:
-            heatmap /= np.max(heatmap)
+        # Keep the remaining code exactly as it is.
 
-        heatmap = cv2.resize(heatmap, (IMG_SIZE[1], IMG_SIZE[0]))
-        heatmap = np.uint8(255 * heatmap)
-        heatmap_colored = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-        superimposed = cv2.addWeighted(original_img, 0.6, heatmap_colored, 0.4, 0)
-        
-        _, buffer = cv2.imencode('.jpg', superimposed)
-        heatmap_img_base64 = base64.b64encode(buffer).decode('utf-8')
-
-    session['last_prediction'] = label
-    session['confidence'] = confidence
-
-    # STORE HISTORY + COMPARE using DB
-    conn = get_db()
-    user_id = session.get('user_id')
-    previous = None
-
-    if user_id:
-        prev_record = conn.execute('SELECT prediction FROM history WHERE user_id = ? ORDER BY id DESC LIMIT 1', (user_id,)).fetchone()
-        if prev_record:
-            previous = prev_record['prediction']
-            
-        conn.execute('INSERT INTO history (user_id, prediction, confidence) VALUES (?, ?, ?)', (user_id, label, confidence))
-        conn.commit()
-    conn.close()
-
-    explanation = ask_llm(label, confidence)
-
-    return jsonify({
-        "prediction": str(label).strip().lower(),
-        "confidence": float(round(confidence, 3)),
-        "explanation": explanation,
-        "heatmap": heatmap_img_base64,
-        "previous_prediction": previous
-    })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 # ------------------ CHATBOT ------------------
 @app.route("/chat", methods=["POST"])
