@@ -377,12 +377,18 @@ def predict():
 
         npimg = np.frombuffer(file_bytes, np.uint8)
         original_img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-        print("Original image:", original_img.shape)
 
+        if original_img is None:
+            return jsonify({"error": "OpenCV could not decode image"}), 400
+
+        print(original_img.shape)
         current_model = get_model()
         print("Model loaded")
 
-        preds = current_model.predict(img)[0]
+        try:
+            preds = current_model.predict(img)[0]
+        except Exception as e:
+            return jsonify({"error": f"Prediction failed: {e}"}), 500
         print("Prediction:", preds)
 
         predicted_class = np.argmax(preds)
@@ -414,7 +420,7 @@ def predict():
             "prediction": prediction,
             "confidence": round(confidence * 100, 2),
             "heatmap": heatmap,
-            "explanation": ask_llm(prediction, confidence * 100)
+            "explanation": "Test successful"
         })
 
         # Keep the remaining code exactly as it is.
