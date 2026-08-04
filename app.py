@@ -150,8 +150,8 @@ def ask_llm(prediction, confidence, user_question=None):
         return "AI explanation currently unavailable. Please try again later."
 
 def preprocess_image(img_file):
-    img_bytes = BytesIO(img_file.read())
-    img = image.load_img(img_bytes, target_size=IMG_SIZE)
+    img_file.seek(0)
+    img = image.load_img(img_file, target_size=IMG_SIZE)
     img_array = image.img_to_array(img)
     img_array = img_array / 255.0
     img_array = np.expand_dims(img_array, axis=0)
@@ -384,6 +384,38 @@ def predict():
 
         preds = current_model.predict(img)[0]
         print("Prediction:", preds)
+
+        predicted_class = np.argmax(preds)
+        confidence = float(np.max(preds))
+
+        prediction = CLASS_MAP[predicted_class]
+
+        # Save prediction in session for chatbot
+        session["last_prediction"] = prediction
+        session["confidence"] = round(confidence * 100, 2)
+
+        # Optional: save prediction history
+        if "user_id" in session:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO history (user_id, prediction, confidence) VALUES (?, ?, ?)",
+                (session["user_id"], prediction, confidence * 100)
+            )
+            conn.commit()
+            conn.close()
+
+        # Dummy heatmap (replace later with Grad-CAM if you have it)
+        _, buffer = cv2.imencode(".jpg", original_img)
+        heatmap = base64.b64encode(buffer).decode("utf-8")
+
+        print("Sending response...")
+
+        return jsonify({
+            "prediction": prediction,
+            "confidence": round(confidence * 100, 2),
+            "heatmap": heatmap,
+            "explanation": ask_llm(prediction, confidence * 100)
+        })
 
         # Keep the remaining code exactly as it is.
 
