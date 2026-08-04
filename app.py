@@ -365,28 +365,34 @@ def logout():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        print("Predict route called")
+        print("1 - Predict route called")
 
         file = request.files['file']
-        print("Filename:", file.filename)
+        print("2 - File received:", file.filename)
 
         file_bytes = file.read()
-        print("Image bytes:", len(file_bytes))
+        print("3 - File bytes:", len(file_bytes))
+
 
         img = preprocess_image(BytesIO(file_bytes))
+        print("4 - Image preprocessed")
+
 
         npimg = np.frombuffer(file_bytes, np.uint8)
         original_img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+        print("5 - Image decoded")
+
 
         if original_img is None:
             return jsonify({"error": "OpenCV could not decode image"}), 400
 
         print(original_img.shape)
         current_model = get_model()
-        print("Model loaded")
+        print("6 - Model loaded")
 
         try:
             preds = current_model.predict(img)[0]
+            print("7 - Prediction completed")
         except Exception as e:
             return jsonify({"error": f"Prediction failed: {e}"}), 500
         print("Prediction:", preds)
