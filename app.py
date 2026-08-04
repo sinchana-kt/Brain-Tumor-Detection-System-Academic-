@@ -400,18 +400,20 @@ def predict():
         predicted_class = np.argmax(preds)
         confidence = float(np.max(preds))
 
+        if confidence <= 1:
+            confidence *= 100
+
         prediction = CLASS_MAP[predicted_class]
 
         # Save prediction in session for chatbot
         session["last_prediction"] = prediction
-        session["confidence"] = round(confidence * 100, 2)
-
+        session["confidence"] = round(confidence, 2)
         # Optional: save prediction history
         if "user_id" in session:
             conn = get_db()
             conn.execute(
                 "INSERT INTO history (user_id, prediction, confidence) VALUES (?, ?, ?)",
-                (session["user_id"], prediction, confidence * 100)
+                (session["user_id"], prediction, confidence)
             )
             conn.commit()
             conn.close()
@@ -423,11 +425,11 @@ def predict():
         print("Sending response...")
 
         return jsonify({
-            "prediction": prediction,
-            "confidence": round(confidence * 100, 2),
-            "heatmap": heatmap,
-            "explanation": "Test successful"
-        })
+        "prediction": prediction,
+        "confidence": round(confidence, 2),
+        "heatmap": heatmap,
+        "explanation": "Test successful"
+    })
 
         # Keep the remaining code exactly as it is.
 
